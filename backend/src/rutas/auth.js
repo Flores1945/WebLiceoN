@@ -192,4 +192,31 @@ router.get("/me", autenticar, async (req, res) => {
     }
 });
 
+
+// Cambio de contrasena del propio usuario autenticado
+router.post("/cambiar-clave", autenticar, async (req, res) => {
+    try {
+        const actual = String(req.body?.actual || "");
+        const nueva = String(req.body?.nueva || "");
+        if (!actual || !nueva) {
+            return res.status(400).json({ error: "Completa la clave actual y la nueva." });
+        }
+        if (nueva.length < 6) {
+            return res.status(400).json({ error: "La nueva clave debe tener minimo 6 caracteres." });
+        }
+        const rows = await query("SELECT password FROM usuarios WHERE id = ? LIMIT 1", [req.usuario.id]);
+        const usuario = rows[0];
+        if (!usuario || !(await bcrypt.compare(actual, String(usuario.password)))) {
+            return res.status(401).json({ error: "La clave actual es incorrecta." });
+        }
+        const hash = await bcrypt.hash(nueva, 10);
+        await query("UPDATE usuarios SET password = ? WHERE id = ?", [hash, req.usuario.id]);
+        res.json({ ok: true });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "No se pudo cambiar la contrasena." });
+    }
+});
+
 module.exports = router;
+

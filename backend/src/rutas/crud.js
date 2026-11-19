@@ -1,4 +1,5 @@
 const express = require("express");
+const bcrypt = require("bcryptjs");
 const { query, conCandado } = require("../db");
 const resources = require("../resources");
 const { pick, normalizarDatos, registrarAuditoria, normalizarTelefonoPe } = require("../helpers");
@@ -159,6 +160,26 @@ router.get("/usuarios", exigirDirectiva, async (_req, res) => {
         res.json(rows);
     } catch (error) {
         responderError(res, error, "No se pudieron listar los usuarios.");
+    }
+});
+
+
+// La directiva restablece la clave de cualquier usuario
+router.put("/usuarios/:id/password", exigirDirectiva, async (req, res) => {
+    try {
+        const id = Number(req.params.id);
+        const password = String(req.body?.password || "");
+        if (!id) return res.status(400).json({ error: "Id invalido." });
+        if (password.length < 6) {
+            return res.status(400).json({ error: "La clave debe tener minimo 6 caracteres." });
+        }
+        const existe = await query("SELECT id FROM usuarios WHERE id = ? LIMIT 1", [id]);
+        if (!existe.length) return res.status(404).json({ error: "Usuario no encontrado." });
+        const hash = await bcrypt.hash(password, 10);
+        await query("UPDATE usuarios SET password = ? WHERE id = ?", [hash, id]);
+        res.json({ ok: true });
+    } catch (error) {
+        responderError(res, error, "No se pudo actualizar la clave.");
     }
 });
 

@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Usuarios - I.E. Liceo Trujillo</title>
+    <link rel="stylesheet" href="../estilos/tema.css">
+    <link rel="stylesheet" href="../estilos/panel.css">
+    <link rel="stylesheet" href="../estilos/alumnos.css">
+</head>
+<body data-pagina="usuarios">
+
+    <div class="layout">
+        <!-- BARRA LATERAL IZQUIERDA: Navegación Principal -->
+        <aside class="barra barra-izquierda">
+            <img src="../imagenes/escudo.png" alt="Escudo I.E. Liceo Trujillo" class="escudo-liceo">
+            <p class="brand-bar">📍 I.E. Liceo Trujillo</p>
+
+            <h2>Navegación Principal</h2>
+            <nav class="nav-html" id="menuNavegacion" style="display: flex; flex-direction: column; gap: 8px;">
+                <a class="btn-funcional" href="./panel.html">🏠 Inicio</a>
+                <a class="btn-funcional" href="./asistencias.html">📋 Asistencias</a>
+                <a class="btn-funcional" href="./alumnos.html">🎒 Alumnos</a>
+                <a class="btn-funcional" href="./reportes.html">📊 Reportes</a>
+                <a class="btn-funcional" href="./registro.html">⚙️ Registro Personal</a>
+                <a class="btn-funcional activo" href="./usuarios.html" style="margin-bottom: 0;">👤 Usuarios</a>
+            </nav>
+        </aside>
+
+        <!-- CONTENIDO PRINCIPAL -->
+        <main class="contenido">
+            <!-- BANNER DE PÁGINA -->
+            <div class="welcome-banner">
+                <h1>👤 Usuarios del Sistema</h1>
+                <p>Personas registradas con acceso a la plataforma web</p>
+                <div class="badge-role">Acceso: Director / Subdirector</div>
+            </div>
+
+            <!-- CAMBIAR MI CONTRASEÑA -->
+            <div class="formulario-alumno" id="panelMiClave">
+                <h2>🔑 Cambiar mi contraseña</h2>
+                <form id="formMiClave">
+                    <div class="formulario-grid">
+                        <div class="form-grupo">
+                            <label for="claveActual">Clave actual</label>
+                            <input type="password" id="claveActual" required autocomplete="current-password">
+                        </div>
+                        <div class="form-grupo">
+                            <label for="claveNueva">Nueva clave (mín. 6 caracteres)</label>
+                            <input type="password" id="claveNueva" required minlength="6" autocomplete="new-password">
+                        </div>
+                        <div class="form-grupo">
+                            <label for="claveNueva2">Confirmar nueva clave</label>
+                            <input type="password" id="claveNueva2" required minlength="6" autocomplete="new-password">
+                        </div>
+                    </div>
+                    <div class="formulario-acciones">
+                        <button type="submit" class="btn-funcional-inline" id="guardarMiClaveBtn">Actualizar clave</button>
+                    </div>
+                    <p class="estado-alumnos" id="estadoMiClave"></p>
+                </form>
+            </div>
+
+            <!-- FILTROS -->
+            <div class="filtros-panel">
+                <h2>🔍 Filtrar Usuarios</h2>
+                <div class="filtros-grid">
+                    <div class="filtro-grupo">
+                        <label for="filtroCargo">Cargo</label>
+                        <select id="filtroCargo">
+                            <option value="">Todos</option>
+                            <option value="Director">Director</option>
+                            <option value="Subdirector">Subdirector</option>
+                            <option value="Docente">Docente</option>
+                            <option value="Sub Docente">Sub Docente</option>
+                            <option value="Alumno">Alumno</option>
+                            <option value="Padre">Padre</option>
+                            <option value="Apafa">Apafa</option>
+                        </select>
+                    </div>
+                    <div class="filtro-grupo">
+                        <label for="filtroEstado">Estado</label>
+                        <select id="filtroEstado">
+                            <option value="">Todos</option>
+                            <option value="1">Activos</option>
+                            <option value="0">Inactivos</option>
+                        </select>
+                    </div>
+                    <div class="filtro-grupo">
+                        <label for="filtroBusqueda">Buscar</label>
+                        <input type="text" id="filtroBusqueda" placeholder="Nombre o correo...">
+                    </div>
+                </div>
+            </div>
+
+            <!-- TABLA DE USUARIOS -->
+            <div class="tabla-alumnos-wrap">
+                <table class="tabla-alumnos">
+                    <thead>
+                        <tr>
+                            <th>Nombres</th>
+                            <th>Apellidos</th>
+                            <th>Correo</th>
+                            <th>Cargo</th>
+                            <th>Teléfono</th>
+                            <th>Estado</th>
+                            <th>Registro</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaUsuariosBody"></tbody>
+                </table>
+            </div>
+
+            <p class="estado-alumnos" id="estadoUsuarios"></p>
+        </main>
+
+        <!-- BARRA DERECHA -->
+        <aside class="barra barra-utilidad">
+            <h2 style="margin-top: 0;">📊 Estadísticas</h2>
+            <div class="widget-card card-estadistica">
+                <div class="estadistica-icon">👥</div>
+                <div class="estadistica-info">
+                    <h3 id="totalUsuarios">0</h3>
+                    <p>Usuarios registrados</p>
+                </div>
+            </div>
+
+            <h2>🔗 Accesos Rápidos</h2>
+            <div class="widget-card">
+                <a href="./registro.html" class="quick-action-btn">
+                    <span class="quick-icon">⚙️</span>
+                    <span>Registro Personal</span>
+                </a>
+                <a href="./asistencias.html" class="quick-action-btn">
+                    <span class="quick-icon">📋</span>
+                    <span>Ver Asistencias</span>
+                </a>
+                <a href="./alumnos.html" class="quick-action-btn">
+                    <span class="quick-icon">🎒</span>
+                    <span>Ver Alumnos</span>
+                </a>
+            </div>
+
+            <h2>💡 Ayuda</h2>
+            <div class="widget-card">
+                <p>Desde aquí la directiva puede restablecer la clave de cualquier usuario y cada persona puede cambiar su propia contraseña arriba.</p>
+            </div>
+
+            <button class="btn-funcional btn-salir" id="cerrarSesionBtn" type="button">Cerrar sesión</button>
+        </aside>
+    </div>
+
+    <footer class="pie-global">
+        <span>I.E. Liceo Trujillo · Todos los derechos reservados</span>
+        <span>|</span>
+        <a href="./panel.html">Panel</a>
+        <a href="./usuarios.html">Usuarios</a>
+        <a href="./index.html">Login</a>
+    </footer>
+
+    <script type="module" src="../scripts/usuarios.js"></script>
+</body>
+</html>

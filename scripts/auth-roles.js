@@ -38,7 +38,8 @@ export const PAGINAS = {
     MATRICULAS: "matriculas",
     INVENTARIO: "inventario",
     DOCUMENTOS: "documentos",
-    REGLAMENTO: "reglamento"
+    REGLAMENTO: "reglamento",
+    USUARIOS: "usuarios"
 };
 
 const VER = MODO.VER;
@@ -133,6 +134,7 @@ const MENU_ITEMS = [
     { id: PAGINAS.ALUMNOS, label: "🎓 Alumnos", href: "./alumnos.html", grupo: "principal" },
     { id: PAGINAS.REPORTES, label: "📊 Reportes", href: "./reportes.html", grupo: "principal" },
     { id: PAGINAS.REGISTRO_PERSONAL, label: "⚙️ Registro Personal", href: "./registro.html", grupo: "principal" },
+    { id: PAGINAS.USUARIOS, label: "👤 Usuarios", href: "./usuarios.html", grupo: "principal" },
     
     // Académico
     { id: PAGINAS.NOTAS, label: "📝 Notas", href: "./notas.html", grupo: "academico" },

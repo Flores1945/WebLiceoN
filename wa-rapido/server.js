@@ -63,14 +63,14 @@ async function iniciarSocket() {
 
     // Reenvia mensajes entrantes al webhook de n8n (para justificaciones/IA)
     sock.ev.on("messages.upsert", async ({ messages, type }) => {
-        if (type !== "notify") return;
+        if (type !== "notify" || !N8N_WEBHOOK_ENTRANTE) return;
         for (const msg of messages) {
             if (msg.key.fromMe) continue;
             const texto =
                 msg.message?.conversation ||
                 msg.message?.extendedTextMessage?.text ||
                 "";
-            if (!texto && !N8N_WEBHOOK_ENTRANTE) continue;
+            if (!texto) continue;
             try {
                 await fetch(N8N_WEBHOOK_ENTRANTE, {
                     method: "POST",
@@ -91,6 +91,13 @@ async function iniciarSocket() {
 
 const app = express();
 app.use(express.json());
+
+app.get("/qr", (_req, res) => {
+    if (!qrActual) return res.send("<h2>WhatsApp ya conectado o aun no hay QR.</h2>");
+    qrcode.generate(qrActual, { small: true }, (txt) => {
+        res.type("html").send("<html><body style='background:#000;color:#0f0;font-family:monospace;text-align:center;padding:20px'><pre>" + txt + "</pre></body></html>");
+    });
+});
 
 app.get("/status", (_req, res) => {
     res.json({ connected: conectado, tieneQR: !!qrActual });
