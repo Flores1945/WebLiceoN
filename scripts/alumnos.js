@@ -891,6 +891,133 @@ function totalPct(parte, total) {
     return total ? `${Math.round((parte / total) * 100)}%` : "0%";
 }
 
+
+// ---------- Generación de PDF con QRs (jsPDF) ----------
+
+const pdfAulaBtn = document.getElementById("pdfAulaBtn");
+const pdfTodosBtn = document.getElementById("pdfTodosBtn");
+
+function datosQRAlumno(alumno) {
+    return JSON.stringify({
+        id: alumno.id,
+        dni: alumno.dni || "",
+        nombres: alumno.nombres,
+        apellidos: alumno.apellidos,
+        nivel: alumno.nivel,
+        grado: alumno.grado,
+        seccion: alumno.seccion,
+        turno: alumno.turno
+    });
+}
+
+function qrDataUrlAlumno(alumno) {
+    return new Promise((resolve, reject) => {
+        QRCode.toDataURL(datosQRAlumno(alumno), {
+            width: 400,
+            margin: 1,
+            errorCorrectionLevel: "M",
+            color: { dark: "#0D47A1", light: "#ffffff" }
+        }, (err, url) => (err ? reject(err) : resolve(url)));
+    });
+}
+
+// Dibuja una cuadrícula de QRs pequeños: 5 columnas x 6 filas = 30 por hoja
+async function generarPDFQrs(lista, titulo) {
+    if (!lista.length) {
+        estadoAlumnos.textContent = "No hay alumnos para generar el PDF.";
+        return;
+    }
+    if (typeof jspdf === "undefined" || !jspdf.jsPDF) {
+        estadoAlumnos.textContent = "No se pudo cargar la librería de PDF.";
+        return;
+    }
+    if (typeof QRCode === "undefined" || !QRCode.toDataURL) {
+        estadoAlumnos.textContent = "No se pudo cargar la librería de QR.";
+        return;
+    }
+
+    estadoAlumnos.textContent = `Generando PDF con ${lista.length} QRs...`;
+
+    const { jsPDF } = jspdf;
+    const doc = new jsPDF({ unit: "mm", format: "a4" });
+    const PW = 210, PH = 297, M = 10;
+    const COLS = 5, CARD_W = (PW - 2 * M - (COLS - 1) * 4) / COLS, CARD_H = 42;
+    const QR = 20, Y0 = 34;
+    let x = M, y = Y0;
+
+    const encabezado = () => {
+        doc.setFillColor(13, 71, 161);
+        doc.rect(0, 0, PW, 24, "F");
+        doc.setTextColor(255, 255, 255);
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(13);
+        doc.text("I.E. Emblemática Liceo Trujillo", PW / 2, 10, { align: "center" });
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(9);
+        doc.text(titulo, PW / 2, 17, { align: "center" });
+        doc.setTextColor(30, 30, 30);
+        doc.setFontSize(8);
+        doc.text(
+            `${lista.length} alumnos · Generado el ${new Date().toLocaleDateString("es-PE")} · Sistema de Asistencia`,
+            PW / 2, 30, { align: "center" }
+        );
+    };
+
+    encabezado();
+
+    for (let i = 0; i < lista.length; i++) {
+        const alumno = lista[i];
+        if (y + CARD_H > PH - M) {
+            doc.addPage();
+            encabezado();
+            x = M; y = Y0;
+        }
+        try {
+            const url = await qrDataUrlAlumno(alumno);
+            doc.addImage(url, "PNG", x + (CARD_W - QR) / 2, y, QR, QR);
+        } catch (e) {
+            console.error("QR falló para", alumno.id, e);
+        }
+        const nombre = `${alumno.nombres || ""} ${alumno.apellidos || ""}`.trim();
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(7.5);
+        doc.setTextColor(20, 20, 20);
+        const lineasNombre = doc.splitTextToSize(nombre, CARD_W - 2).slice(0, 2);
+        doc.text(lineasNombre, x + CARD_W / 2, y + QR + 4.5, { align: "center" });
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(6.5);
+        doc.setTextColor(90, 90, 90);
+        doc.text(`${alumno.nivel} ${alumno.grado}° "${alumno.seccion}" · ${alumno.turno}`, x + CARD_W / 2, y + QR + 9, { align: "center" });
+        if (alumno.dni) {
+            doc.text(`DNI ${alumno.dni}`, x + CARD_W / 2, y + QR + 13, { align: "center" });
+        }
+        x += CARD_W + 4;
+        if ((i + 1) % COLS === 0) { x = M; y += CARD_H; }
+    }
+
+    const fecha = new Date().toISOString().slice(0, 10);
+    doc.save(`QRs_${titulo.replace(/[^w]+/g, "_")}_${fecha}.pdf`);
+    estadoAlumnos.textContent = `PDF generado con ${lista.length} QRs.`;
+    await registrarMovimiento("pdf_qrs", `Genero PDF de QRs: ${titulo} (${lista.length} alumnos)`, { pagina: "alumnos" });
+}
+
+pdfAulaBtn?.addEventListener("click", async () => {
+    const nivel = filtroNivel.value;
+    const grado = filtroGrado.value;
+    const seccion = filtroSeccion.value;
+    if (!nivel || !grado || !seccion) {
+        estadoAlumnos.textContent = "Selecciona nivel, grado y sección para generar el PDF del aula.";
+        return;
+    }
+    await generarPDFQrs(aplicarFiltros(), `Aula ${nivel} ${grado}° "${seccion}"`);
+});
+
+pdfTodosBtn?.addEventListener("click", async () => {
+    await generarPDFQrs([...alumnos].sort((a, b) =>
+        String(a.apellidos || "").localeCompare(String(b.apellidos || ""))
+    ), "Todos los alumnos");
+});
+
 formAlumno.addEventListener("submit", guardarAlumno);
 limpiarFormBtn?.addEventListener("click", limpiarFormulario);
 filtroNivel?.addEventListener("change", renderTabla);

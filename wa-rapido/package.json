@@ -1,0 +1,16 @@
+{
+  "name": "wa-rapido",
+  "version": "1.0.0",
+  "description": "Puente local de WhatsApp (Baileys) para el sistema de asistencia del liceo",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "@whiskeysockets/baileys": "^6.7.18",
+    "express": "^4.21.2",
+    "pino": "^9.5.0",
+    "qrcode-terminal": "^0.12.0"
+  }
+}

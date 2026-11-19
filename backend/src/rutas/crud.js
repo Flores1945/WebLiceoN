@@ -5,6 +5,7 @@ const { pick, normalizarDatos, registrarAuditoria, normalizarTelefonoPe } = requ
 const { puede } = require("../permisos");
 const { exigirDirectiva } = require("../middleware/auth");
 const { normalizarEstadoAsistencia, notificarN8nAsistencia } = require("../notificar-n8n");
+const { notificarWhatsappAsistencia } = require("../notificar-whatsapp");
 
 const router = express.Router();
 const CAPACIDAD_MAXIMA = 28;
@@ -273,6 +274,7 @@ router.post("/asistencias/marcar-aula", async (req, res) => {
         // Avisos a n8n (WhatsApp) por cada alumno marcado
         for (const id of ids) {
             notificarN8nAsistencia(id, estadoFinal).catch(() => {});
+            notificarWhatsappAsistencia(id, estadoFinal).catch(() => {});
         }
 
         await registrarAuditoria(query, req, {
@@ -324,6 +326,7 @@ router.post("/asistencias/marcar", async (req, res) => {
         }
 
         notificarN8nAsistencia(estudianteId, estadoFinal).catch(() => {});
+        notificarWhatsappAsistencia(estudianteId, estadoFinal).catch(() => {});
             const fechaDoc = fechaFinal || new Date().toISOString().slice(0, 10);
 
         await registrarAuditoria(query, req, {

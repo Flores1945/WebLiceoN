@@ -12,6 +12,7 @@ const {
     normalizarEstadoAsistencia,
     notificarN8nAsistencia
 } = require("./notificar-n8n");
+const { notificarWhatsappAsistencia } = require("./notificar-whatsapp");
 
 const app = express();
 const frontendDir = path.join(__dirname, "..", "..");
@@ -103,9 +104,14 @@ app.get("/api/public/estudiantes/:dni", async (_req, res) => {
 });
 
 // La APK puede mandar "Asistencia", "Presente", "Tarde", "Ausente", etc.
-app.post("/api/public/asistencia", async (_req, res) => {
+// Protegido con la misma clave compartida que usa n8n (x-n8n-key).
+app.post("/api/public/asistencia", async (req, res) => {
     try {
-        const { estudiante_id, estado, observacion } = _req.body;
+        const n8nKey = process.env.N8N_API_KEY;
+        if (!n8nKey || req.headers["x-n8n-key"] !== n8nKey) {
+            return res.status(401).json({ error: "No autorizado" });
+        }
+        const { estudiante_id, estado, observacion } = req.body;
         if (!estudiante_id || !estado) {
             return res.status(400).json({ error: "Faltan datos obligatorios" });
         }
@@ -129,6 +135,7 @@ app.post("/api/public/asistencia", async (_req, res) => {
 
         // Avisar a n8n para que envíe el WhatsApp al apoderado (sin bloquear la respuesta)
         notificarN8nAsistencia(estudiante_id, estadoNormalizado).catch(() => {});
+        notificarWhatsappAsistencia(estudiante_id, estadoNormalizado).catch(() => {});
 
         res.status(201).json({ id: result.insertId, ok: true });
     } catch (error) {
@@ -255,7 +262,7 @@ app.put("/api/public/estudiantes/:id/dni", async (_req, res) => {
 });
 
 app.use("/api/auth", authRoutes);
-app.use("/api/apk", apkRoutes);
+app.use("/api/apk", autenticar, apkRoutes);
 app.use("/api/demo", autenticar, demoRoutes);
 app.use("/api", autenticar, crudRoutes);
 

@@ -20,3 +20,6 @@ backend/firebase-key.json
 backend/node_modules/
 backend/*.log
 scripts/vendor/*.map
+wa-rapido/sesion/
+wa-rapido/node_modules/
+*.log
